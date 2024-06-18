@@ -42,7 +42,7 @@ printableChar                 ((\\[nrt\\"0])|(\\(x[0-7][0-9a-fA-F]))|([ -!#-\[\]
 (([1-9]{digit}*)|0)           return NUM;
 \"{printableChar}*\"          return STRING;
 \"{printableChar}*            return UNCLOSED_STRING;
-\"{printableChar}*\\([^\\ntr\"0])|x(([^0-7][^0-9a-fA-F])|([^0-7][0-9a-fA-F])|([0-7][^0-9a-fA-F]))
+\"{printableChar}*\\[^\\ntr\"0]|(x(([^0-7][^0-9a-fA-F])|([^0-7][0-9a-fA-F])|([0-7][^0-9a-fA-F])))
                               return  BAD_ESCAPE_SEQUENCE;
 {whitespace}                  ;
 .                             return ERROR;

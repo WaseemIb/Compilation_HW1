@@ -2,12 +2,13 @@
 #include <string>
 #include <iostream>
 
+using namespace std;
+
 void printToken(int);
-std::string tokenToString(int);
-std::string stringFormat();
-std::string invalidStringFormat(int);
-std::string badEscapeFormat();
-std::string unclosedStringformat();
+string tokenToString(int);
+string stringFormat();
+string invalidStringFormat(int);
+string badEscapeFormat();
 
 int main()
 {
@@ -19,17 +20,19 @@ int main()
 }
 
 void printToken(int token) {
-    if(token <= 28)
-        std::cout << yylineno << " " << tokenToString(token) << " " << yytext << std::endl;
-    if(token == ERROR || token == UNCLOSED_STRING || token == BAD_ESCAPE_SEQUENCE){
-        if(token != ERROR) {
-            std::cout << tokenToString(token) << std::endl;
-        }
-        exit(0);
+    if(token < END_OF_TYPES)
+    {
+        string toPrint = to_string(yylineno) + " " + tokenToString(token);
+        if(token != COMMENT && token != STRING)
+            toPrint += " " + string(yytext);
+        cout << toPrint << endl;
+        return;
     }
+    cout << tokenToString(token) << endl;
+    exit(0);
 }
 
-std::string tokenToString(int token) {
+string tokenToString(int token) {
     switch (token) {
         case INT: return "INT";
         case BYTE: return "BYTE";
@@ -58,28 +61,53 @@ std::string tokenToString(int token) {
         case ID: return "ID";
         case NUM: return "NUM";
         case STRING: return stringFormat();
-        case ERROR: return std::string("Error ") + yytext;
+        case NOT_FOUND: return string("Error ") + yytext;
         case UNCLOSED_STRING: return invalidStringFormat(token);
         case BAD_ESCAPE_SEQUENCE: return invalidStringFormat(token);
         default: break;
     }
     return "";
 }
-std::string stringFormat(){
-    std::string str(yytext);
-    return std::string("STRING ") + str;
-}
-std::string unclosedStringFormat(){
-    return "Error unclosed string";
-}
-std::string badEscapeFormat(){
 
-    return "";
+string stringFormat() {
+    string str = string(yytext);
+    str = str.substr(1, str.size() - 2);
+    for(int i = 0; i < str.size(); i++)
+    {
+        if(str[i] != '\\')
+            continue;
+        string tmp;
+        if(str[i + 1] == 'n')
+            str = str.substr(0, i) + '\n' + str.substr(i + 2);
+        if(str[i + 1] == 'r')
+            str = str.substr(0, i) + '\r' + str.substr(i + 2);
+        if(str[i + 1] == 't')
+            str = str.substr(0, i) + '\t' + str.substr(i + 2);
+        if(str[i + 1] == '\\')
+            str = str.substr(0, i) + '\\' + str.substr(i + 2);
+        if(str[i + 1] == '\"')
+            str = str.substr(0, i) + '\"' + str.substr(i + 2);
+        if(str[i + 1] == 'x')
+        {
+            string hex = str.substr(i + 2, 2);
+            int asciiVal = stoi(hex, nullptr, 16);
+            char c = (char)asciiVal;
+            str = str.substr(0, i) + c + str.substr(i + 4);
+        }
+    }
+    return string("STRING ") + str;
 }
-std::string invalidStringFormat(int token){
+
+string badEscapeFormat() {
+    string str = string(yytext);
+    size_t lastBackSlash = str.find_last_of('\\');
+    string badEscape = str.substr(lastBackSlash + 1);
+    return "Error undefined escape sequence " + badEscape;
+}
+
+string invalidStringFormat(int token) {
     if(token == UNCLOSED_STRING)
-        return unclosedStringFormat();
-    else if (token == BAD_ESCAPE_SEQUENCE)
+        return "Error unclosed string";
+    else // BAD_ESCAPE_SEQUENCE
         return badEscapeFormat();
-
 }
