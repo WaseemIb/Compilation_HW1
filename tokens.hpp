@@ -2,6 +2,7 @@
 #define TOKENS_HPP_
   enum tokentype
   {
+    ERROR = 0,
     INT = 2,
     BYTE = 3,
     B = 4,
@@ -28,7 +29,11 @@
     COMMENT = 25,
     ID = 26,
     NUM = 27,
-    STRING = 28
+    STRING = 28,
+    UNCLOSED_STRING = 29,
+    BAD_ESCAPE_SEQUENCE = 30
+
+
   };
   extern int yylineno;
   extern char* yytext;
