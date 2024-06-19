@@ -13,7 +13,7 @@ string badEscapeFormat();
 int main()
 {
 	int token;
-	while(token == yylex()) {
+	while(token = yylex()) {
         printToken(token);
 	}
 	return 0;
@@ -77,6 +77,11 @@ string stringFormat() {
         if(str[i] != '\\')
             continue;
         string tmp;
+        if(str[i + 1] == '0')
+        {
+            str = str.substr(0, i);
+            break;
+        }
         if(str[i + 1] == 'n')
             str = str.substr(0, i) + '\n' + str.substr(i + 2);
         if(str[i + 1] == 'r')
@@ -92,7 +97,13 @@ string stringFormat() {
             string hex = str.substr(i + 2, 2);
             int asciiVal = stoi(hex, nullptr, 16);
             char c = (char)asciiVal;
-            str = str.substr(0, i) + c + str.substr(i + 4);
+            if(c == '\0')
+            {
+                str = str.substr(0, i);
+                break;
+            }
+            else
+                str = str.substr(0, i) + c + str.substr(i + 4);
         }
     }
     return string("STRING ") + str;
@@ -100,6 +111,8 @@ string stringFormat() {
 
 string badEscapeFormat() {
     string str = string(yytext);
+    if(str[str.size() - 1] == '\"')
+        str = str.substr(0, str.size() - 1);
     size_t lastBackSlash = str.find_last_of('\\');
     string badEscape = str.substr(lastBackSlash + 1);
     return "Error undefined escape sequence " + badEscape;
